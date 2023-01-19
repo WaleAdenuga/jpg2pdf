@@ -35,8 +35,8 @@ public class MainActivity extends AppCompatActivity {
     private ImageView camera;
     private ImageView upload;
 
-    private static final int CAMERA_PERMISSION_CODE = 100;
-    private static final int STORAGE_PERMISSION_CODE = 101;
+    private static final int REQUEST_PERMISSION_CODE = 102;
+    private final String[] permission = new String[] {Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.CAMERA};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,64 +47,39 @@ public class MainActivity extends AppCompatActivity {
         camera = (ImageView) findViewById(R.id.cameraView);
         upload = (ImageView) findViewById(R.id.UploadView);
 
-
         camera.setOnClickListener(this::onClickCamera);
         upload.setOnClickListener(this::onClickUpload);
     }
 
     public void onClickCamera(View v) {
-        checkPermission(Manifest.permission.CAMERA, CAMERA_PERMISSION_CODE);
-        startCamera();
+        //Check camera and storage permissions ==> camera to take pictures, storage to save them
+        Intent intent = new Intent(this, cameraActivity.class);
+        startActivity(intent);
     }
 
     public void onClickUpload(View v) {
         checkPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE, STORAGE_PERMISSION_CODE);
+        checkPermission(Manifest.permission.READ_EXTERNAL_STORAGE, READ_PERMISSION_CODE);
     }
 
     public void checkPermission(String permission, int requestCode)
     {
         // Checking if permission is not granted
         if (ContextCompat.checkSelfPermission(MainActivity.this, permission) == PackageManager.PERMISSION_DENIED) {
-            ActivityCompat.requestPermissions(MainActivity.this, new String[] { permission }, requestCode);
+            ActivityCompat.
+            ActivityCompat.requestPermissions(MainActivity.this, new String[] { Manifest.permission.CAMERA,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE }, requestCode);
         }
     }
 
-    public void startCamera() {
-        Intent camera = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        activityResultLauncher.launch(camera);
-
+    public boolean allGranted(@NonNull int[] grantResults) {
+        for (int i : grantResults) {
+            if (i == PackageManager.PERMISSION_DENIED) {
+                return false;
+            }
+        }
+        return true;
     }
-
-    ActivityResultLauncher<Intent> activityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
-        @Override
-        public void onActivityResult(ActivityResult result) {
-            if (result.getResultCode() == Activity.RESULT_OK) {
-                Intent data = result.getData();
-
-                BitmapFactory.Options options = new BitmapFactory.Options();
-                options.inScaled = false;
-                options.inDither = false;
-                options.inPreferredConfig = Bitmap.Config.ARGB_8888;
-                Bitmap bit = (Bitmap) data.getExtras().get("data");
-                display.setImageBitmap(bit);
-
-
-            }
-        }
-    });
-
-
-
-   /* ActivityResultLauncher<Intent> activityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
-        @Override
-        public void onActivityResult(ActivityResult result) {
-            if (result.getResultCode() == Activity.RESULT_OK) {
-                Intent data = result.getData();
-                Bitmap bit = (Bitmap) data.getExtras().get("data");
-                display.setImageBitmap(bit);
-            }
-        }
-    });*/
 
     @Override
     public void onRequestPermissionsResult(int requestCode,
@@ -114,22 +89,8 @@ public class MainActivity extends AppCompatActivity {
         super.onRequestPermissionsResult(requestCode,
                 permissions,
                 grantResults);
-
-        if (requestCode == CAMERA_PERMISSION_CODE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(MainActivity.this, "Camera Permission Granted", Toast.LENGTH_SHORT) .show();
-            }
-            else {
-                Toast.makeText(MainActivity.this, "Camera Permission Denied", Toast.LENGTH_SHORT) .show();
-            }
-        }
-        else if (requestCode == STORAGE_PERMISSION_CODE) {
-            if (grantResults.length > 0
-                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(MainActivity.this, "Storage Permission Granted", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(MainActivity.this, "Storage Permission Denied", Toast.LENGTH_SHORT).show();
-            }
-        }
+        if(allGranted(grantResults)) {
+            Toast.makeText(this, "All permissions granted", Toast.LENGTH_SHORT).show();
+        } else Toast.makeText(this, "Application can't function without granting all permissions", Toast.LENGTH_SHORT).show();
     }
 }

@@ -6,44 +6,55 @@
     android:layout_height="match_parent"
     tools:context=".cameraActivity">
 
-    <ImageView
-        android:id="@+id/imageCaptured"
+    <androidx.camera.view.PreviewView
+        android:id="@+id/previewCamera"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginBottom="10dp"
+        app:layout_constraintStart_toStartOf="parent"
+        android:importantForAccessibility="no"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/linearLayout"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <LinearLayout
+        android:id="@+id/linearLayout"
         android:layout_width="match_parent"
-        android:layout_height="600dp"
+        android:layout_height="100dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="10dp"
+        android:gravity="center_horizontal"
+        android:orientation="horizontal"
+        android:weightSum="3"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.508"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.905"
-        app:srcCompat="@drawable/ic_baseline_camera_alt_24" />
+        app:layout_constraintTop_toBottomOf="@id/previewCamera">
 
-    <Button
-        android:id="@+id/convertButton"
-        style="@style/Widget.MaterialComponents.Button"
-        android:layout_width="150dp"
-        android:layout_height="50dp"
-        android:layout_marginEnd="10dp"
-        android:text="CONVERT"
-        app:layout_constraintBottom_toTopOf="@+id/imageCaptured"
-        app:layout_constraintEnd_toEndOf="parent" />
+        <ImageView
+            android:id="@+id/imageCaptured"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:srcCompat="@drawable/ic_baseline_camera_alt_24" />
 
-    <Button
-        android:id="@+id/saveButton"
-        android:layout_width="wrap_content"
-        android:layout_height="50dp"
-        android:layout_marginStart="10dp"
-        android:text="Save Image to Device"
-        app:layout_constraintBottom_toTopOf="@+id/imageCaptured"
-        app:layout_constraintStart_toStartOf="parent" />
+<!--        <Button
+            android:id="@+id/convertButton"
+            style="@style/Widget.MaterialComponents.Button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="40dp"
+            android:layout_marginBottom="10dp"
+            android:text="CONVERT" />
 
-    <Button
-        android:id="@+id/retakeButt"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="50dp"
-        android:text="Retake Picture"
-        app:layout_constraintBottom_toTopOf="@+id/imageCaptured"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        <Button
+            android:id="@+id/retakeButt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="40dp"
+            android:layout_marginBottom="10dp"
+            android:text="Retake Picture" />-->
+    </LinearLayout>
+
+
 </androidx.constraintlayout.widget.ConstraintLayout>
