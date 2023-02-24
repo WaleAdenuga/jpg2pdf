@@ -7,11 +7,15 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.camera.core.Camera;
+import androidx.camera.core.CameraControl;
+import androidx.camera.core.CameraInfo;
 import androidx.camera.core.CameraSelector;
 import androidx.camera.core.ImageAnalysis;
 import androidx.camera.core.ImageCapture;
 import androidx.camera.core.ImageCaptureException;
+import androidx.camera.core.MeteringPoint;
 import androidx.camera.core.Preview;
+import androidx.camera.core.TorchState;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.core.content.ContextCompat;
@@ -22,6 +26,7 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -48,6 +53,7 @@ public class cameraActivity extends AppCompatActivity {
 
     private ImageView display;
     private PreviewView previewView;
+    private ImageCapture capture;
     private Executor executor = Executors.newSingleThreadExecutor();
 
     @Override
@@ -59,11 +65,13 @@ public class cameraActivity extends AppCompatActivity {
         display = (ImageView) findViewById(R.id.imageCaptured);
         previewView = (PreviewView) findViewById(R.id.previewCamera);
 
+        display.setOnClickListener(this::onClickDisplay);
+
         startCamera();
     }
 
     public void startCamera() {
-        final ListenableFuture<ProcessCameraProvider> cameraProviderListenableFuture = ProcessCameraProvider.getInstance(this);
+        final ListenableFuture<ProcessCameraProvider> cameraProviderListenableFuture = ProcessCameraProvider.getInstance(getApplicationContext());
         cameraProviderListenableFuture.addListener(new Runnable() {
             @Override
             public void run() {
@@ -75,8 +83,6 @@ public class cameraActivity extends AppCompatActivity {
                 }
             }
         }, ContextCompat.getMainExecutor(this));
-        /*Intent camera = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        activityResultLauncher.launch(camera);*/
     }
 
     public void bindPreview(@NonNull ProcessCameraProvider cameraProvider) {
@@ -87,45 +93,55 @@ public class cameraActivity extends AppCompatActivity {
         ImageAnalysis imageAnalysis = new ImageAnalysis.Builder().build();
         ImageCapture.Builder builder = new ImageCapture.Builder();
 
-        final ImageCapture capture = builder
+        capture = builder
                 .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
                 .setTargetRotation(this.getWindowManager().getDefaultDisplay().getRotation())
                 .build();
         preview.setSurfaceProvider(previewView.getSurfaceProvider());
         Camera camera = cameraProvider.bindToLifecycle((LifecycleOwner) this, cameraSelector, preview, imageAnalysis, capture);
+        //For performing operations that affects all outputs
+        CameraControl control = camera.getCameraControl();
+        //For querying information and states
+        CameraInfo cameraInfo = camera.getCameraInfo();
+        control.setLinearZoom(cameraInfo.getZoomState().getValue().getLinearZoom());
+        if (cameraInfo.hasFlashUnit()) {
+            control.enableTorch(true);
+        }
+    }
 
-        display.setOnClickListener(new View.OnClickListener() {
+    public void onClickDisplay(View v) {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss", Locale.US);
+        File file = new File(getDirectoryName(), sdf.format(new Date()) + ".jpg");
+
+        ImageCapture.OutputFileOptions outputFileOptions = new ImageCapture.OutputFileOptions.Builder(file).build();
+        capture.takePicture(outputFileOptions, executor, new ImageCapture.OnImageSavedCallback() {
             @Override
-            public void onClick(View v) {
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HHmmss", Locale.ENGLISH);
-                File file = new File(getDirectoryName(), sdf.format(new Date()) + ".jpg");
-
-                ImageCapture.OutputFileOptions outputFileOptions = new ImageCapture.OutputFileOptions.Builder(file).build();
-                capture.takePicture(outputFileOptions, executor, new ImageCapture.OnImageSavedCallback() {
+            public void onImageSaved(@NonNull ImageCapture.OutputFileResults outputFileResults) {
+                new Handler().post(new Runnable() {
                     @Override
-                    public void onImageSaved(@NonNull ImageCapture.OutputFileResults outputFileResults) {
-                        new Handler().post(new Runnable() {
-                            @Override
-                            public void run() {
-                                Toast.makeText(cameraActivity.this, "Image saved in " + file.getAbsolutePath() + "successfully", Toast.LENGTH_LONG).show();
-                            }
-                        });
-                    }
-
-                    @Override
-                    public void onError(@NonNull ImageCaptureException exception) {
-                        exception.printStackTrace();
+                    public void run() {
+                        Toast.makeText(cameraActivity.this, "Image saved in " + file.getAbsolutePath() + "successfully", Toast.LENGTH_LONG).show();
                     }
                 });
             }
+            @Override
+            public void onError(@NonNull ImageCaptureException exception) {
+                exception.printStackTrace();
+            }
         });
+        //Store saved picture to gallery
+        Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+        Uri uri = Uri.fromFile(file);
+        intent.setData(uri);
+        cameraActivity.this.sendBroadcast(intent);
     }
 
+
     public String getDirectoryName() {
-        String path = Environment.getExternalStorageDirectory().toString() + "/images";
+        String path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).toString() + "/Camera/";
         File dir = new File(path);
-        if (!dir.exists()) {
-            dir.mkdirs();
+        if (!dir.exists() && !dir.mkdirs() ) {
+            Toast.makeText(getApplicationContext(), "Directory making failed", Toast.LENGTH_SHORT).show();
         }
         return path;
     }
