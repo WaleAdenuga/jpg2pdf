@@ -28,6 +28,7 @@ import android.widget.Toast;
 
 import com.google.common.util.concurrent.ListenableFuture;
 
+import java.util.ArrayList;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -49,6 +50,8 @@ public class MainActivity extends AppCompatActivity {
 
         camera.setOnClickListener(this::onClickCamera);
         upload.setOnClickListener(this::onClickUpload);
+
+        checkPermission(permission, REQUEST_PERMISSION_CODE);
     }
 
     public void onClickCamera(View v) {
@@ -58,17 +61,22 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onClickUpload(View v) {
-        checkPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE, STORAGE_PERMISSION_CODE);
-        checkPermission(Manifest.permission.READ_EXTERNAL_STORAGE, READ_PERMISSION_CODE);
+        Intent intent = new Intent(this, uploadActivity.class);
+        startActivity(intent);
     }
 
-    public void checkPermission(String permission, int requestCode)
+    public void checkPermission(String[] permission, int requestCode)
     {
-        // Checking if permission is not granted
-        if (ContextCompat.checkSelfPermission(MainActivity.this, permission) == PackageManager.PERMISSION_DENIED) {
-            ActivityCompat.
-            ActivityCompat.requestPermissions(MainActivity.this, new String[] { Manifest.permission.CAMERA,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE }, requestCode);
+        // Checking if permission is not granted, request if not
+        ArrayList<String> ungrantedPermissions = new ArrayList<>();
+        for (String i : permission) {
+            if (ContextCompat.checkSelfPermission(MainActivity.this, i) == PackageManager.PERMISSION_DENIED) {
+                ungrantedPermissions.add(i);
+            }
+        }
+        //Faster to implement as new String[0] instead of correct length
+        if (ungrantedPermissions.size() > 0) {
+            ActivityCompat.requestPermissions(MainActivity.this, ungrantedPermissions.toArray(new String[0]), requestCode);
         }
     }
 
