@@ -37,7 +37,8 @@ public class MainActivity extends AppCompatActivity {
     private ImageView upload;
 
     private static final int REQUEST_PERMISSION_CODE = 102;
-    private final String[] permission = new String[] {Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.CAMERA};
+    private final String[] permission = new String[] {Manifest.permission.WRITE_EXTERNAL_STORAGE,
+             Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.CAMERA};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -99,6 +100,10 @@ public class MainActivity extends AppCompatActivity {
                 grantResults);
         if(allGranted(grantResults)) {
             Toast.makeText(this, "All permissions granted", Toast.LENGTH_SHORT).show();
-        } else Toast.makeText(this, "Application can't function without granting all permissions", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, "Application can't function without granting permissions", Toast.LENGTH_LONG).show();
+            MainActivity.this.finish();
+            System.exit(0);
+        }
     }
 }
