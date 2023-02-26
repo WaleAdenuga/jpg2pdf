@@ -31,6 +31,8 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.provider.MediaStore;
+import android.util.Log;
+import android.util.Size;
 import android.view.Display;
 import android.view.View;
 import android.widget.Button;
@@ -90,7 +92,10 @@ public class cameraActivity extends AppCompatActivity {
         CameraSelector cameraSelector = new CameraSelector.Builder()
                 .requireLensFacing(CameraSelector.LENS_FACING_BACK)
                 .build();
-        ImageAnalysis imageAnalysis = new ImageAnalysis.Builder().build();
+        ImageAnalysis imageAnalysis = new ImageAnalysis.Builder()
+                .setTargetResolution(new Size(1280,720))
+                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                .build();
         ImageCapture.Builder builder = new ImageCapture.Builder();
 
         capture = builder
@@ -109,41 +114,55 @@ public class cameraActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
+
     public void onClickDisplay(View v) {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss", Locale.US);
-        File file = new File(getDirectoryName(), sdf.format(new Date()) + ".jpg");
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.ENGLISH);
+        //File file = new File(getDirectoryName(sdf), sdf.format(new Date()) + ".jpg");
+        String filePath = getDirectoryName(sdf);
+        filePath = filePath.replaceAll(":", "."); //looks like this solved the operation not permitted issue
+        File file = new File(filePath);
 
         ImageCapture.OutputFileOptions outputFileOptions = new ImageCapture.OutputFileOptions.Builder(file).build();
         capture.takePicture(outputFileOptions, executor, new ImageCapture.OnImageSavedCallback() {
             @Override
             public void onImageSaved(@NonNull ImageCapture.OutputFileResults outputFileResults) {
-                new Handler().post(new Runnable() {
+                /*new Handler().post(new Runnable() {
                     @Override
                     public void run() {
-                        Toast.makeText(cameraActivity.this, "Image saved in " + file.getAbsolutePath() + "successfully", Toast.LENGTH_LONG).show();
+
                     }
-                });
+                });*/
+
+                //Store saved picture to gallery only if image is saved
+                Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+                Uri uri = Uri.fromFile(file);
+                intent.setData(uri);
+                cameraActivity.this.sendBroadcast(intent);
             }
             @Override
             public void onError(@NonNull ImageCaptureException exception) {
                 exception.printStackTrace();
             }
         });
-        //Store saved picture to gallery
-        Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
-        Uri uri = Uri.fromFile(file);
-        intent.setData(uri);
-        cameraActivity.this.sendBroadcast(intent);
+        Log.d("Camera", file.getAbsolutePath());
+        Toast.makeText(cameraActivity.this, "Image saved in " + file.getAbsolutePath() + "successfully", Toast.LENGTH_LONG).show();
     }
 
 
-    public String getDirectoryName() {
-        String path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).toString() + "/Camera/";
-        File dir = new File(path);
-        if (!dir.exists() && !dir.mkdirs() ) {
-            Toast.makeText(getApplicationContext(), "Directory making failed", Toast.LENGTH_SHORT).show();
+    public String getDirectoryName(SimpleDateFormat sdf) {
+        try {
+            File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+            File file = File.createTempFile(sdf.format(new Date()), ".jpg", storageDir);
+            return file.getAbsolutePath();
+        } catch(Exception e) {
+            Log.e("Camera", "Exception while creating a file");
+            e.printStackTrace();
         }
-        return path;
+        return "";
     }
 
 /*    ActivityResultLauncher<Intent> activityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
