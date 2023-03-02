@@ -22,11 +22,13 @@ import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LifecycleOwner;
 
 import android.app.Activity;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -122,34 +124,39 @@ public class cameraActivity extends AppCompatActivity {
     public void onClickDisplay(View v) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.ENGLISH);
         //File file = new File(getDirectoryName(sdf), sdf.format(new Date()) + ".jpg");
-        String filePath = getDirectoryName(sdf);
-        filePath = filePath.replaceAll(":", "."); //looks like this solved the operation not permitted issue
-        File file = new File(filePath);
+        //String filePath = getDirectoryName(sdf);
+        //filePath = filePath.replaceAll(":", "."); //looks like this solved the operation not permitted issue
+        //File file = new File(filePath);
 
-        ImageCapture.OutputFileOptions outputFileOptions = new ImageCapture.OutputFileOptions.Builder(file).build();
+        ContentValues values = new ContentValues();
+        values.put(MediaStore.MediaColumns.DISPLAY_NAME, sdf.format(System.currentTimeMillis()));
+        values.put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg");
+        if(Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
+            values.put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/ConvertPDF");
+        }
+
+        ImageCapture.OutputFileOptions outputFileOptions = new ImageCapture.OutputFileOptions
+                .Builder(getContentResolver(),
+                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+                .build();
         capture.takePicture(outputFileOptions, executor, new ImageCapture.OnImageSavedCallback() {
             @Override
             public void onImageSaved(@NonNull ImageCapture.OutputFileResults outputFileResults) {
-                /*new Handler().post(new Runnable() {
-                    @Override
-                    public void run() {
-
-                    }
-                });*/
 
                 //Store saved picture to gallery only if image is saved
-                Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
-                Uri uri = Uri.fromFile(file);
-                intent.setData(uri);
-                cameraActivity.this.sendBroadcast(intent);
+                Log.d("TAG", "Is this even reached");
+                Log.d("TAG", outputFileResults.getSavedUri().toString());
+
+                /*2023-03-02 14:39:28.421 7308-8065/com.test1.convertpdf D/TAG: content://media/external/images/media/1000000069                 */Log.d("TAG", "Surely not reached right");
+
             }
             @Override
             public void onError(@NonNull ImageCaptureException exception) {
                 exception.printStackTrace();
             }
         });
-        Log.d("Camera", file.getAbsolutePath());
-        Toast.makeText(cameraActivity.this, "Image saved in " + file.getAbsolutePath() + "successfully", Toast.LENGTH_LONG).show();
+        //Log.d("Camera", file.getAbsolutePath());
+        //Toast.makeText(cameraActivity.this, "Image saved in " + file.getAbsolutePath() + "successfully", Toast.LENGTH_LONG).show();
     }
 
 
