@@ -1,9 +1,5 @@
 package com.test1.convertpdf;
 
-import androidx.activity.result.ActivityResult;
-import androidx.activity.result.ActivityResultCallback;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.camera.core.Camera;
@@ -13,35 +9,26 @@ import androidx.camera.core.CameraSelector;
 import androidx.camera.core.ImageAnalysis;
 import androidx.camera.core.ImageCapture;
 import androidx.camera.core.ImageCaptureException;
-import androidx.camera.core.MeteringPoint;
 import androidx.camera.core.Preview;
-import androidx.camera.core.TorchState;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LifecycleOwner;
 
-import android.app.Activity;
 import android.content.ContentValues;
-import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Handler;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.util.Size;
-import android.view.Display;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.common.util.concurrent.ListenableFuture;
 
@@ -49,14 +36,16 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 public class cameraActivity extends AppCompatActivity {
 
-    private ImageView display;
+    private Button captureButton;
     private PreviewView previewView;
+    private ImageView display;
     private ImageCapture capture;
     private Executor executor = Executors.newSingleThreadExecutor();
 
@@ -66,10 +55,10 @@ public class cameraActivity extends AppCompatActivity {
         setContentView(R.layout.activity_camera);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
-        display = (ImageView) findViewById(R.id.imageCaptured);
+        captureButton = (Button) findViewById(R.id.captureButton);
         previewView = (PreviewView) findViewById(R.id.previewCamera);
 
-        display.setOnClickListener(this::onClickDisplay);
+        captureButton.setOnClickListener(this::onClickCapture);
 
         startCamera();
     }
@@ -121,7 +110,7 @@ public class cameraActivity extends AppCompatActivity {
         super.onDestroy();
     }
 
-    public void onClickDisplay(View v) {
+    public void onClickCapture(View v) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.ENGLISH);
         //File file = new File(getDirectoryName(sdf), sdf.format(new Date()) + ".jpg");
         //String filePath = getDirectoryName(sdf);
@@ -145,10 +134,14 @@ public class cameraActivity extends AppCompatActivity {
 
                 //Store saved picture to gallery only if image is saved
                 Log.d("TAG", "Is this even reached");
-                Log.d("TAG", outputFileResults.getSavedUri().toString());
+                Log.d("TAG", Objects.requireNonNull(outputFileResults.getSavedUri()).toString());
 
-                /*2023-03-02 14:39:28.421 7308-8065/com.test1.convertpdf D/TAG: content://media/external/images/media/1000000069                 */Log.d("TAG", "Surely not reached right");
+                /*2023-03-02 14:39:28.421 7308-8065/com.test1.convertpdf D/TAG: content://media/external/images/media/1000000069                 */
+                Log.d("TAG", "Surely not reached right");
+                Log.d("TAG", outputFileResults.getSavedUri().getEncodedPath());
 
+                // Display the saved picture
+                //showDisplay(outputFileResults);
             }
             @Override
             public void onError(@NonNull ImageCaptureException exception) {
@@ -157,6 +150,34 @@ public class cameraActivity extends AppCompatActivity {
         });
         //Log.d("Camera", file.getAbsolutePath());
         //Toast.makeText(cameraActivity.this, "Image saved in " + file.getAbsolutePath() + "successfully", Toast.LENGTH_LONG).show();
+    }
+
+    public void showDisplay(ImageCapture.OutputFileResults results) {
+        LayoutInflater inflater = getLayoutInflater();
+        View view = inflater.inflate(R.layout.activity_display, null);
+        ImageView imageView = (ImageView) view.findViewById(R.id.displayView);
+
+//        // Get the dimensions of the View
+//        int targetW = imageView.getWidth();
+//        int targetH = imageView.getHeight();
+//
+//        // Get the dimensions of the bitmap
+//        BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+//        bmOptions.inJustDecodeBounds = true;
+//
+//        int photoW = bmOptions.outWidth;
+//        int photoH = bmOptions.outHeight;
+//
+//        // Determine how much to scale down the image
+//        int scaleFactor = Math.min(photoW/targetW, photoH/targetH);
+//
+//        // Decode the image file into a Bitmap sized to fill the View
+//        bmOptions.inJustDecodeBounds = false;
+//        bmOptions.inSampleSize = scaleFactor;
+//        bmOptions.inPurgeable = true;
+
+        Bitmap bitmap = BitmapFactory.decodeFile(Objects.requireNonNull(results.getSavedUri()).getPath());
+        imageView.setImageBitmap(bitmap);
     }
 
 

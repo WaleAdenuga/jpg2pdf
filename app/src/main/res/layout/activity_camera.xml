@@ -32,28 +32,20 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/previewCamera">
 
-        <ImageView
-            android:id="@+id/imageCaptured"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            app:srcCompat="@drawable/ic_baseline_camera_alt_24" />
-
-<!--        <Button
-            android:id="@+id/convertButton"
-            style="@style/Widget.MaterialComponents.Button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="40dp"
-            android:layout_marginBottom="10dp"
-            android:text="CONVERT" />
 
         <Button
-            android:id="@+id/retakeButt"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="40dp"
-            android:layout_marginBottom="10dp"
-            android:text="Retake Picture" />-->
+            android:id="@+id/captureButton"
+            style="@android:style/Widget.DeviceDefault.ImageButton"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:backgroundTint="#2196F3"
+            android:drawableEnd="@drawable/ic_baseline_camera_alt_24"
+            android:text="CAPTURE"
+            android:textAlignment="center"
+            android:textAppearance="@style/TextAppearance.AppCompat.Display1"
+            app:tint="#37068F" />
+
     </LinearLayout>
 
 
