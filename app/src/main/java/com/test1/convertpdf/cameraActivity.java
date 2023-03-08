@@ -141,7 +141,7 @@ public class cameraActivity extends AppCompatActivity {
                 Log.d("TAG", outputFileResults.getSavedUri().getEncodedPath());
 
                 // Display the saved picture
-                //showDisplay(outputFileResults);
+                showDisplay(outputFileResults);
             }
             @Override
             public void onError(@NonNull ImageCaptureException exception) {
@@ -156,6 +156,7 @@ public class cameraActivity extends AppCompatActivity {
         LayoutInflater inflater = getLayoutInflater();
         View view = inflater.inflate(R.layout.activity_display, null);
         ImageView imageView = (ImageView) view.findViewById(R.id.displayView);
+        imageView.setImageURI(results.getSavedUri());
 
 //        // Get the dimensions of the View
 //        int targetW = imageView.getWidth();
@@ -176,8 +177,8 @@ public class cameraActivity extends AppCompatActivity {
 //        bmOptions.inSampleSize = scaleFactor;
 //        bmOptions.inPurgeable = true;
 
-        Bitmap bitmap = BitmapFactory.decodeFile(Objects.requireNonNull(results.getSavedUri()).getPath());
-        imageView.setImageBitmap(bitmap);
+        //Bitmap bitmap = BitmapFactory.decodeFile(Objects.requireNonNull(results.getSavedUri()).getPath());
+        //imageView.setImageBitmap(bitmap);
     }
 
 
