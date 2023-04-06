@@ -12,13 +12,18 @@ import androidx.camera.core.ImageCaptureException;
 import androidx.camera.core.Preview;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LifecycleOwner;
 
 import android.content.ContentValues;
+import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -26,6 +31,8 @@ import android.provider.MediaStore;
 import android.util.Log;
 import android.util.Size;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -34,6 +41,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Objects;
@@ -101,7 +109,7 @@ public class cameraActivity extends AppCompatActivity {
         CameraInfo cameraInfo = camera.getCameraInfo();
         control.setLinearZoom(cameraInfo.getZoomState().getValue().getLinearZoom());
         if (cameraInfo.hasFlashUnit()) {
-            control.enableTorch(true);
+            control.enableTorch(false);
         }
     }
 
@@ -131,55 +139,27 @@ public class cameraActivity extends AppCompatActivity {
         capture.takePicture(outputFileOptions, executor, new ImageCapture.OnImageSavedCallback() {
             @Override
             public void onImageSaved(@NonNull ImageCapture.OutputFileResults outputFileResults) {
-
-                //Store saved picture to gallery only if image is saved
-                Log.d("TAG", "Is this even reached");
-                Log.d("TAG", Objects.requireNonNull(outputFileResults.getSavedUri()).toString());
-
-                /*2023-03-02 14:39:28.421 7308-8065/com.test1.convertpdf D/TAG: content://media/external/images/media/1000000069                 */
-                Log.d("TAG", "Surely not reached right");
-                Log.d("TAG", outputFileResults.getSavedUri().getEncodedPath());
-
                 // Display the saved picture
-                //showDisplay(outputFileResults);
+                Intent intent = new Intent(cameraActivity.this, displayActivity.class);
+                intent.putExtra("OutputFileResults", Objects.requireNonNull(outputFileResults.getSavedUri()).toString());
+                startActivity(intent);
             }
             @Override
             public void onError(@NonNull ImageCaptureException exception) {
                 exception.printStackTrace();
             }
         });
-        //Log.d("Camera", file.getAbsolutePath());
-        //Toast.makeText(cameraActivity.this, "Image saved in " + file.getAbsolutePath() + "successfully", Toast.LENGTH_LONG).show();
     }
 
-    public void showDisplay(ImageCapture.OutputFileResults results) {
-        LayoutInflater inflater = getLayoutInflater();
-        View view = inflater.inflate(R.layout.activity_display, null);
-        ImageView imageView = (ImageView) view.findViewById(R.id.displayView);
-
-//        // Get the dimensions of the View
-//        int targetW = imageView.getWidth();
-//        int targetH = imageView.getHeight();
-//
-//        // Get the dimensions of the bitmap
-//        BitmapFactory.Options bmOptions = new BitmapFactory.Options();
-//        bmOptions.inJustDecodeBounds = true;
-//
-//        int photoW = bmOptions.outWidth;
-//        int photoH = bmOptions.outHeight;
-//
-//        // Determine how much to scale down the image
-//        int scaleFactor = Math.min(photoW/targetW, photoH/targetH);
-//
-//        // Decode the image file into a Bitmap sized to fill the View
-//        bmOptions.inJustDecodeBounds = false;
-//        bmOptions.inSampleSize = scaleFactor;
-//        bmOptions.inPurgeable = true;
-
-        Bitmap bitmap = BitmapFactory.decodeFile(Objects.requireNonNull(results.getSavedUri()).getPath());
-        imageView.setImageBitmap(bitmap);
+    public boolean onCreateOptionsMenu(Menu menu) {
+        return true;
     }
 
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        super.finish();
+        return super.onOptionsItemSelected(item);
+
+    }
 
     public String getDirectoryName(SimpleDateFormat sdf) {
         try {
