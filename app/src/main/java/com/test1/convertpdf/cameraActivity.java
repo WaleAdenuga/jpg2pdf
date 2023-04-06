@@ -126,7 +126,8 @@ public class cameraActivity extends AppCompatActivity {
         //File file = new File(filePath);
 
         ContentValues values = new ContentValues();
-        values.put(MediaStore.MediaColumns.DISPLAY_NAME, sdf.format(System.currentTimeMillis()));
+        String fileName = sdf.format(System.currentTimeMillis());
+        values.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
         values.put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg");
         if(Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
             values.put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/ConvertPDF");
@@ -142,6 +143,7 @@ public class cameraActivity extends AppCompatActivity {
                 // Display the saved picture
                 Intent intent = new Intent(cameraActivity.this, displayActivity.class);
                 intent.putExtra("OutputFileResults", Objects.requireNonNull(outputFileResults.getSavedUri()).toString());
+                intent.putExtra("FileName", fileName);
                 startActivity(intent);
             }
             @Override
