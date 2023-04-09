@@ -58,4 +58,15 @@
         app:layout_constraintStart_toStartOf="@+id/UploadView"
         app:layout_constraintTop_toBottomOf="@+id/UploadView" />
 
+    <Button
+        android:id="@+id/convertedFilesButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
+        android:backgroundTint="#2196F3"
+        android:text="Show Converted Files"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

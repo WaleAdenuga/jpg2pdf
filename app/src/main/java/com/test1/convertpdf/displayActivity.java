@@ -6,6 +6,7 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -83,15 +84,18 @@ public class displayActivity extends AppCompatActivity {
     public void onClickConvert(View v){
         convert.setVisibility(View.INVISIBLE);
         bar.setVisibility(View.VISIBLE);
+        String dirName = "/Documents/ConvertPDF";
 
         //Added itext jar file because gradle was being annoying
         try {
-            File file = new File(Environment.getExternalStorageDirectory()+"/Documents/convertPDF");
+            File file = new File(Environment.getExternalStorageDirectory()+dirName);
             if (!file.exists()) {
                 boolean state = file.mkdirs();
                 if (!state) {
                     Toast.makeText(getApplicationContext(), "Making directory failed", Toast.LENGTH_SHORT).show();
-                } else Toast.makeText(getApplicationContext(), "Making directory success", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getApplicationContext(), "Making directory success", Toast.LENGTH_SHORT).show();
+                }
             }
             Log.d("TAG", "on click convert file 1 " + file.getAbsolutePath());
 
@@ -103,7 +107,7 @@ public class displayActivity extends AppCompatActivity {
             document.open();
 
             Image image = Image.getInstance(filePath);
-            image.setRotationDegrees(270);
+            image.setRotationDegrees(270); //images are always flipped for some reason
             image.scaleToFit(image.getWidth()+1f, image.getHeight()+1f);
             //image.setAbsolutePosition(0,0);
 
@@ -117,16 +121,12 @@ public class displayActivity extends AppCompatActivity {
             document.close();
             writer.close();
 
-            close(fileName+".pdf");
+            Toast.makeText(getApplicationContext(), "File: " + dirName + " " + fileName, Toast.LENGTH_LONG).show();
+            Intent intent = new Intent(displayActivity.this, MainActivity.class);
+            startActivity(intent);
         } catch (DocumentException | IOException e) {
             e.printStackTrace();
         }
-    }
-
-    public void close(String path) {
-        Toast.makeText(getApplicationContext(), "File: Internal Storage/Documents/convertPDF/" + path, Toast.LENGTH_LONG).show();
-        Intent intent = new Intent(displayActivity.this, MainActivity.class);
-        startActivity(intent);
     }
 
     public String getPathFromUri(Uri uri) {
