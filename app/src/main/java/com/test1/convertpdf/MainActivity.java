@@ -10,6 +10,7 @@ import androidx.camera.core.Preview;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 
 import android.Manifest;
 import android.app.Activity;
@@ -44,7 +45,6 @@ import java.util.concurrent.Executors;
 public class MainActivity extends AppCompatActivity {
     private ImageView camera;
     private ImageView upload;
-    private Button button;
 
     private static final int REQUEST_PERMISSION_CODE = 102;
     private final ArrayList<String> permission = new ArrayList<String>(Arrays.asList(Manifest.permission.WRITE_EXTERNAL_STORAGE,
@@ -58,17 +58,11 @@ public class MainActivity extends AppCompatActivity {
 
         camera = (ImageView) findViewById(R.id.cameraView);
         upload = (ImageView) findViewById(R.id.UploadView);
-        button = (Button) findViewById(R.id.convertedFilesButton);
 
         camera.setOnClickListener(this::onClickCamera);
         upload.setOnClickListener(this::onClickUpload);
-        button.setOnClickListener(this::onClickConvertedFilesButton);
 
-        if (checkIfExists()) {
-            button.setVisibility(View.VISIBLE);
-        } else {
-            button.setVisibility(View.INVISIBLE);
-        }
+
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             permission.add(Manifest.permission.READ_MEDIA_IMAGES);
@@ -78,19 +72,7 @@ public class MainActivity extends AppCompatActivity {
         checkPermission(permission, REQUEST_PERMISSION_CODE);
     }
 
-    public boolean checkIfExists() {
-        int count = 0;
-        //Going via environment. is better than providing the full path through intent
-        //Providing the full path led to a null pointer exception
-        //Better to hardcode the final path, the other avenues don't look faster
-        File file = new File(Environment.getExternalStorageDirectory() + "/Documents/ConvertPDF");
-        if (file.isDirectory()) {
-            for (File f : Objects.requireNonNull(file.listFiles())) {
-                count++;
-            }
-        }
-        return count > 0 || file.exists();
-    }
+
 
     public void onClickCamera(View v) {
         //Check camera and storage permissions ==> camera to take pictures, storage to save them
@@ -101,18 +83,6 @@ public class MainActivity extends AppCompatActivity {
     public void onClickUpload(View v) {
         Intent intent = new Intent(this, uploadActivity.class);
         startActivity(intent);
-    }
-
-    public void onClickConvertedFilesButton(View v) {
-        Intent intent = new Intent(Intent.ACTION_PICK);
-        Uri uri = Uri.parse(Environment.getExternalStorageDirectory().getPath() + File.separator + "/Documents/ConvertPDF" + File.separator);
-        intent.setDataAndType(uri, "*/*");
-        startActivity(intent);
-        if (intent.resolveActivity(getApplicationContext().getPackageManager()) != null) {
-
-        } else {
-            Log.d("TAG", "ERRORRRRORORORORORORORO");
-        }
     }
 
     public void checkPermission(ArrayList<String> permission, int requestCode)
