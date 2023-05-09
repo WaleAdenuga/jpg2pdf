@@ -21,6 +21,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -35,6 +36,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -45,8 +47,8 @@ public class MainActivity extends AppCompatActivity {
     private Button button;
 
     private static final int REQUEST_PERMISSION_CODE = 102;
-    private final String[] permission = new String[] {Manifest.permission.WRITE_EXTERNAL_STORAGE,
-             Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.CAMERA};
+    private final ArrayList<String> permission = new ArrayList<String>(Arrays.asList(Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.CAMERA));
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,6 +70,11 @@ public class MainActivity extends AppCompatActivity {
             button.setVisibility(View.INVISIBLE);
         }
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permission.add(Manifest.permission.READ_MEDIA_IMAGES);
+            permission.remove(Manifest.permission.READ_EXTERNAL_STORAGE);
+            permission.remove(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        }
         checkPermission(permission, REQUEST_PERMISSION_CODE);
     }
 
@@ -108,7 +115,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void checkPermission(String[] permission, int requestCode)
+    public void checkPermission(ArrayList<String> permission, int requestCode)
     {
         // Checking if permission is not granted, request if not
         ArrayList<String> ungrantedPermissions = new ArrayList<>();
