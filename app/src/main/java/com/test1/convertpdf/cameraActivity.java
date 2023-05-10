@@ -62,6 +62,7 @@ public class cameraActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
 
         captureButton = (Button) findViewById(R.id.captureButton);
         previewView = (PreviewView) findViewById(R.id.previewCamera);
