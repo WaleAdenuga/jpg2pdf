@@ -142,8 +142,8 @@ public class cameraActivity extends AppCompatActivity {
             public void onImageSaved(@NonNull ImageCapture.OutputFileResults outputFileResults) {
                 // Display the saved picture
                 Intent intent = new Intent(cameraActivity.this, displayActivity.class);
-                intent.putExtra("OutputFileResults", Objects.requireNonNull(outputFileResults.getSavedUri()).toString());
-                intent.putExtra("FileName", fileName);
+                intent.putExtra("Image OutputFileResults", Objects.requireNonNull(outputFileResults.getSavedUri()).toString());
+                intent.putExtra("Image FileName", fileName);
                 startActivity(intent);
             }
             @Override

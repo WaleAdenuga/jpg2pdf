@@ -42,12 +42,15 @@ import java.io.IOException;
 import java.util.Objects;
 
 public class displayActivity extends AppCompatActivity {
-    private Uri uri;
+    private Uri imageUri;
     private ProgressBar bar;
     private Button convert;
-    private String filePath;
-    private String fileName;
+    private String imageFilePath;
+    private String imageFileName;
+    private String pdfFilePath;
     private Button button;
+    private static final String pdf_directory = "/Documents/ConvertPDF";
+    private static final String pdf_tag = ".pdf";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,16 +58,16 @@ public class displayActivity extends AppCompatActivity {
         setContentView(R.layout.activity_display);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
-        uri = Uri.parse(getIntent().getStringExtra("OutputFileResults"));
-        fileName = getIntent().getStringExtra("FileName");
-        filePath = getPathFromUri(uri);
+        imageUri = Uri.parse(getIntent().getStringExtra("Image OutputFileResults"));
+        imageFileName = getIntent().getStringExtra("Image FileName");
+        imageFilePath = getPathFromUri(imageUri);
 
         ImageView display = (ImageView) findViewById(R.id.displayView);
         ImageView retake = (ImageView) findViewById(R.id.retakeView);
         retake.setOnClickListener(this::onClickRetake);
 
-        display.setImageURI(uri);
-        Bitmap bitmap = BitmapFactory.decodeFile(filePath);
+        display.setImageURI(imageUri);
+        Bitmap bitmap = BitmapFactory.decodeFile(imageFilePath);
         display.setRotation(90);
         display.setImageBitmap(bitmap);
 
@@ -84,9 +87,8 @@ public class displayActivity extends AppCompatActivity {
     }
 
     public void onClickConvertedFilesButton(View v) {
-        File file = new File(Environment.getExternalStorageDirectory(), "Documents/ConvertPDF/" + fileName + ".pdf");
+        File file = new File(pdfFilePath);
         Log.d("TAG", "" + file);
-        Log.d("TAG", "" + file.getAbsolutePath());
 
         Uri uri = FileProvider.getUriForFile(this, getApplicationContext().getPackageName() + ".provider", file);
         Log.d("TAG", "" + uri);
@@ -109,7 +111,7 @@ public class displayActivity extends AppCompatActivity {
         //Going via environment. is better than providing the full path through intent
         //Providing the full path led to a null pointer exception
         //Better to hardcode the final path, the other avenues don't look faster
-        File file = new File(Environment.getExternalStorageDirectory() + "/Documents/ConvertPDF");
+        File file = new File(Environment.getExternalStorageDirectory() + pdf_directory);
         if (file.isDirectory()) {
             for (File f : Objects.requireNonNull(file.listFiles())) {
                 count++;
@@ -120,7 +122,7 @@ public class displayActivity extends AppCompatActivity {
 
     public void onClickRetake(View v) {
         //let's do a delete picture taken if retake is clicked
-        File file = new File(filePath);
+        File file = new File(imageFilePath);
         boolean state = file.delete();
         if (!state) {
             Toast.makeText(getApplicationContext(), "Deletion failed", Toast.LENGTH_SHORT).show();
@@ -131,48 +133,27 @@ public class displayActivity extends AppCompatActivity {
     public void onClickConvert(View v){
         convert.setVisibility(View.INVISIBLE);
         bar.setVisibility(View.VISIBLE);
-        String dirName = "/Documents/ConvertPDF";
 
         //Added itext jar file because gradle was being annoying
-        try {
-            File file = new File(Environment.getExternalStorageDirectory()+dirName);
-            if (!file.exists()) {
-                boolean state = file.mkdirs();
-                if (!state) {
-                    Toast.makeText(getApplicationContext(), "Making directory failed", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(getApplicationContext(), "Making directory success", Toast.LENGTH_SHORT).show();
-                }
+        File directory = new File(Environment.getExternalStorageDirectory()+pdf_directory);
+        if (!directory.exists()) {
+            boolean state = directory.mkdirs();
+            if (!state) {
+                Toast.makeText(getApplicationContext(), "Making directory failed", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(getApplicationContext(), "Making directory success", Toast.LENGTH_SHORT).show();
             }
-            Log.d("TAG", "on click convert file 1 " + file.getAbsolutePath());
-
-            File pdfFile = new File(file.getAbsolutePath(), fileName+".pdf");
-            Log.d("TAG", "on click convert pdf file " + pdfFile.getAbsolutePath());
-
-            Document document = new Document(PageSize.A4, 0, 0, 0, 0);
-            PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream(pdfFile));
-            document.open();
-
-            Image image = Image.getInstance(filePath);
-            image.setRotationDegrees(270); //images are always flipped for some reason
-            image.scaleToFit(image.getWidth()+1f, image.getHeight()+1f);
-            //image.setAbsolutePosition(0,0);
-
-            //when you call scale to fit, height and width change so you have to explicitly call getScaledHeight and getScaledWeight
-            Rectangle size = new Rectangle(image.getScaledWidth()+1f, image.getScaledHeight()+1f);
-            document.setPageSize(size);
-
-
-            document.newPage();
-            document.add(image);
-            document.close();
-            writer.close();
-
-            bar.setVisibility(View.INVISIBLE);
-            button.setVisibility(View.VISIBLE);
-        } catch (DocumentException | IOException e) {
-            e.printStackTrace();
         }
+        Log.d("TAG", "on click convert file 1 " + directory.getAbsolutePath());
+
+        File pdfFile = new File(directory.getAbsolutePath(), imageFileName+pdf_tag);
+        Log.d("TAG", "on click convert pdf file " + pdfFile.getAbsolutePath());
+
+        convertToPdf convert = new convertToPdf();
+        pdfFilePath = convert.jpgToPdf(pdfFile, imageFilePath);
+
+        bar.setVisibility(View.INVISIBLE);
+        button.setVisibility(View.VISIBLE);
     }
 
     public String getPathFromUri(Uri uri) {
