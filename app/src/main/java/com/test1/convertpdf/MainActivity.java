@@ -1,46 +1,32 @@
 package com.test1.convertpdf;
 
+import androidx.activity.ComponentActivity;
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.ActivityResultRegistry;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.camera.core.Preview;
-import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.core.content.FileProvider;
 
 import android.Manifest;
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
-import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Toast;
-
-import com.google.common.util.concurrent.ListenableFuture;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Objects;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity {
     private ImageView camera;
@@ -80,9 +66,53 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+//replace startActivityForResult(intent), that's deprecated, the onActivityResult is for the result of the intent
+ActivityResultLauncher<Intent> launcher = registerForActivityResult(
+    new ActivityResultContracts.StartActivityForResult(),
+    new ActivityResultCallback<ActivityResult>() {
+        @Override
+        public void onActivityResult(ActivityResult result) {
+            if (result.getResultCode() == Activity.RESULT_OK) {
+                Intent data = result.getData();
+                Uri uri = data.getData();
+                PathFromUri path = new PathFromUri();
+                String pickedPath = path.getPathFromUri(uri, getApplicationContext());
+                if (!(pickedPath.contains(".jpg") || pickedPath.contains(".jpeg"))) {
+                    Toast.makeText(getApplicationContext(), "ImageFile Required!", Toast.LENGTH_LONG).show();
+                } else {
+                    Log.d("TAG", "" + pickedPath);
+                    Log.d("TAG", "uri " + uri);
+                    Log.d("TAG", "uri path " + uri.getPath());
+
+                    File file = new File(pickedPath);
+                    String fileName = file.getName();
+                    Log.d("TAG", ""+fileName);
+
+                    Intent intent = new Intent(getApplicationContext(), uploadActivity.class);
+                    intent.putExtra("FileName", fileName);
+                    intent.putExtra("Image FilePath", pickedPath);
+                    startActivity(intent);
+                }
+            }
+        }
+    });
+
     public void onClickUpload(View v) {
-        Intent intent = new Intent(this, uploadActivity.class);
-        startActivity(intent);
+        //For some reason, I can't figure out how to get the actual path from this uri
+        //And we get a FileNotFoundException if we try to use like it is, so comment out and look at it later
+        //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        //    i = new Intent(MediaStore.ACTION_PICK_IMAGES);
+            //Intent i = new Intent(Intent.ACTION_PICK);
+            //i.setType("image/jpg");
+            //i.putExtra(Intent.EXTRA_LOCAL_ONLY, true);
+            //launcher.launch(i);
+        //} else {}
+        //Intent i = new Intent(Intent.ACTION_PICK);
+        //i.setType("image/jpg");
+        //i.putExtra(Intent.EXTRA_LOCAL_ONLY, true);
+        //i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+        PickImage result = new PickImage((ComponentActivity) MainActivity.this, getApplicationContext(), getActivityResultRegistry());
+        result.pickImage();
     }
 
     public void checkPermission(ArrayList<String> permission, int requestCode)

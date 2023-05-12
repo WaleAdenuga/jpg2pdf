@@ -1,5 +1,6 @@
 package com.test1.convertpdf;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.camera.core.ImageCapture;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -22,6 +23,8 @@ import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -57,10 +60,13 @@ public class displayActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_display);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
 
         imageUri = Uri.parse(getIntent().getStringExtra("Image OutputFileResults"));
         imageFileName = getIntent().getStringExtra("Image FileName");
-        imageFilePath = getPathFromUri(imageUri);
+
+        PathFromUri path = new PathFromUri();
+        imageFilePath = path.getPathFromUri(imageUri, getApplicationContext());
 
         ImageView display = (ImageView) findViewById(R.id.displayView);
         ImageView retake = (ImageView) findViewById(R.id.retakeView);
@@ -87,23 +93,8 @@ public class displayActivity extends AppCompatActivity {
     }
 
     public void onClickConvertedFilesButton(View v) {
-        File file = new File(pdfFilePath);
-        Log.d("TAG", "" + file);
-
-        Uri uri = FileProvider.getUriForFile(this, getApplicationContext().getPackageName() + ".provider", file);
-        Log.d("TAG", "" + uri);
-
-        Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        intent.setClipData(ClipData.newRawUri("", uri));
-        intent.setDataAndType(uri, "application/pdf");
-        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-
-        try {
-            startActivity(intent);
-        } catch (ActivityNotFoundException e) {
-            Toast.makeText(this, "No Available PDF APP", Toast.LENGTH_LONG).show();
-        }
+        openPDF open = new openPDF(pdfFilePath);
+        open.openPDF(getApplicationContext());
     }
 
     public boolean checkIfExists() {
@@ -135,44 +126,21 @@ public class displayActivity extends AppCompatActivity {
         bar.setVisibility(View.VISIBLE);
 
         //Added itext jar file because gradle was being annoying
-        File directory = new File(Environment.getExternalStorageDirectory()+pdf_directory);
-        if (!directory.exists()) {
-            boolean state = directory.mkdirs();
-            if (!state) {
-                Toast.makeText(getApplicationContext(), "Making directory failed", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(getApplicationContext(), "Making directory success", Toast.LENGTH_SHORT).show();
-            }
-        }
-        Log.d("TAG", "on click convert file 1 " + directory.getAbsolutePath());
-
-        File pdfFile = new File(directory.getAbsolutePath(), imageFileName+pdf_tag);
-        Log.d("TAG", "on click convert pdf file " + pdfFile.getAbsolutePath());
-
-        convertToPdf convert = new convertToPdf();
-        pdfFilePath = convert.jpgToPdf(pdfFile, imageFilePath);
+        convertToPdf convert = new convertToPdf(getApplicationContext());
+        pdfFilePath = convert.jpgToPdf(imageFilePath, imageFileName,0);
 
         bar.setVisibility(View.INVISIBLE);
         button.setVisibility(View.VISIBLE);
     }
 
-    public String getPathFromUri(Uri uri) {
-        assert uri != null;
-
-        String result = null;
-        String[] proj = { MediaStore.Images.Media.DATA };
-        Cursor cursor = getApplicationContext().getContentResolver( ).query(uri, proj, null, null, null );
-        if(cursor != null){
-            if (cursor.moveToFirst()) {
-                int column_index = cursor.getColumnIndexOrThrow(proj[0]);
-                result = cursor.getString(column_index);
-            }
-            cursor.close();
-        }
-        if(result == null) {
-            result = "Not found";
-        }
-        Log.d("TAG", "result is " + result);
-        return result;
+    public boolean onCreateOptionsMenu(Menu menu) {
+        return true;
     }
+
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        super.finish();
+        return super.onOptionsItemSelected(item);
+
+    }
+
 }
