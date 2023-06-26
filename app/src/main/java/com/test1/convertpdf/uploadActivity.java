@@ -5,6 +5,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.ActionBar;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -95,7 +96,9 @@ public class uploadActivity extends AppCompatActivity {
     }
 
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        super.finish();
+        //super.finish();
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
         return super.onOptionsItemSelected(item);
 
     }

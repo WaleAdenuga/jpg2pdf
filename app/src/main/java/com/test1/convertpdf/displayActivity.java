@@ -37,6 +37,7 @@ import com.itextpdf.text.Image;
 import com.itextpdf.text.PageSize;
 import com.itextpdf.text.Rectangle;
 import com.itextpdf.text.pdf.PdfWriter;
+import com.squareup.picasso.Picasso;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -72,10 +73,11 @@ public class displayActivity extends AppCompatActivity {
         ImageView retake = (ImageView) findViewById(R.id.retakeView);
         retake.setOnClickListener(this::onClickRetake);
 
-        display.setImageURI(imageUri);
-        Bitmap bitmap = BitmapFactory.decodeFile(imageFilePath);
-        display.setRotation(90);
-        display.setImageBitmap(bitmap);
+        Picasso.get().load(new File(imageFilePath)).into(display);
+        //display.setImageURI(imageUri);
+        //Bitmap bitmap = BitmapFactory.decodeFile(imageFilePath);
+        //display.setRotation(90);
+        //display.setImageBitmap(bitmap);
 
         bar = (ProgressBar) findViewById(R.id.bar);
         bar.setVisibility(View.INVISIBLE);

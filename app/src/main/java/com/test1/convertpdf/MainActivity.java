@@ -31,6 +31,7 @@ import java.util.Arrays;
 public class MainActivity extends AppCompatActivity {
     private ImageView camera;
     private ImageView upload;
+    private ImageView multipleImage;
 
     private static final int REQUEST_PERMISSION_CODE = 102;
     private final ArrayList<String> permission = new ArrayList<String>(Arrays.asList(Manifest.permission.WRITE_EXTERNAL_STORAGE,
@@ -42,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
+        multipleImage = (ImageView) findViewById(R.id.multiple);
         camera = (ImageView) findViewById(R.id.cameraView);
         upload = (ImageView) findViewById(R.id.UploadView);
 
@@ -59,6 +61,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    public void onClickMultiple(View v) {
+        //Plan - Launch camera activity as usual but have an integer in the intent
+        //Kind of a conditional variable, then based
+    }
 
     public void onClickCamera(View v) {
         //Check camera and storage permissions ==> camera to take pictures, storage to save them
