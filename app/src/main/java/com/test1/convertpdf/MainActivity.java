@@ -13,6 +13,8 @@ import androidx.core.content.ContextCompat;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
@@ -22,6 +24,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.NumberPicker;
 import android.widget.Toast;
 
 import java.io.File;
@@ -49,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
 
         camera.setOnClickListener(this::onClickCamera);
         upload.setOnClickListener(this::onClickUpload);
-
+        multipleImage.setOnClickListener(this::onClickMultiple);
 
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -63,12 +66,35 @@ public class MainActivity extends AppCompatActivity {
 
     public void onClickMultiple(View v) {
         //Plan - Launch camera activity as usual but have an integer in the intent
-        //Kind of a conditional variable, then based
+        //Kind of a conditional variable, then based on that do stuff
+        //But first, a number picker because honestly why not
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("No of Pages");
+        final View view = getLayoutInflater().inflate(R.layout.dialog_number_picker, null);
+        builder.setView(view);
+        final NumberPicker picker = (NumberPicker) view.findViewById(R.id.no_picker);
+        picker.setMaxValue(100);
+        picker.setMinValue(2);
+        picker.setWrapSelectorWheel(true);
+
+        builder.setPositiveButton("Done", (dialog, which) -> {
+            Intent intent = new Intent(MainActivity.this, cameraActivity.class);
+            intent.putExtra("S/M", 0);
+            intent.putExtra("Image Number", picker.getValue());
+            Log.d("TAG", "" + picker.getValue());
+            startActivity(intent);
+        });
+
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
+        AlertDialog dialog = builder.create();
+        dialog.show();
     }
 
     public void onClickCamera(View v) {
         //Check camera and storage permissions ==> camera to take pictures, storage to save them
         Intent intent = new Intent(this, cameraActivity.class);
+        intent.putExtra("S/M", 1);
         startActivity(intent);
     }
 

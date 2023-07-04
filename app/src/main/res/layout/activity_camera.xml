@@ -15,10 +15,11 @@
         android:importantForAccessibility="no"
         app:layout_constraintBottom_toTopOf="@id/linearLayout"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/linearLayout"
         android:layout_width="match_parent"
         android:layout_height="100dp"
@@ -26,7 +27,6 @@
         android:layout_marginEnd="10dp"
         android:layout_marginBottom="10dp"
         android:gravity="center_horizontal"
-        android:orientation="horizontal"
         android:weightSum="3"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -34,20 +34,57 @@
         app:layout_constraintTop_toBottomOf="@id/previewCamera">
 
 
-        <Button
-            android:id="@+id/captureButton"
-            style="@android:style/Widget.DeviceDefault.ImageButton"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:backgroundTint="#2196F3"
-            android:drawableEnd="@drawable/ic_baseline_camera_alt_24"
-            android:text="CAPTURE"
-            android:textAlignment="center"
-            android:textAppearance="@style/TextAppearance.AppCompat.Display1"
-            app:tint="#37068F" />
+        <ImageView
+            android:id="@+id/shutterImageView"
+            android:layout_width="127dp"
+            android:layout_height="wrap_content"
+            android:baselineAligned="false"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.5"
+            app:srcCompat="@mipmap/ic_capture_modified_foreground" />
 
-    </LinearLayout>
+        <TextView
+            android:id="@+id/pic_taken"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:layout_marginTop="20dp"
+            android:text="Current Page"
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toEndOf="@+id/shutterImageView"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/pic_counter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="7dp"
+            android:text="TextView"
+            android:textAppearance="@style/TextAppearance.AppCompat.Large"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toEndOf="@+id/shutterImageView"
+            app:layout_constraintTop_toBottomOf="@+id/pic_taken" />
+
+        <ImageView
+            android:id="@+id/smallImageDisplay"
+            android:layout_width="90dp"
+            android:layout_height="match_parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/shutterImageView"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.5"
+            app:srcCompat="@android:drawable/ic_menu_gallery" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

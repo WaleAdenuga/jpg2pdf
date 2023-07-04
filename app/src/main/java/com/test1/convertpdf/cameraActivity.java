@@ -1,6 +1,7 @@
 package com.test1.convertpdf;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.camera.core.Camera;
 import androidx.camera.core.CameraControl;
@@ -18,6 +19,7 @@ import androidx.lifecycle.LifecycleOwner;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.database.Cursor;
@@ -36,14 +38,21 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import com.squareup.picasso.Picasso;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
@@ -51,11 +60,20 @@ import java.util.concurrent.Executors;
 
 public class cameraActivity extends AppCompatActivity {
 
-    private Button captureButton;
     private PreviewView previewView;
-    private ImageView display;
+    private ImageView shutter;
+    private ImageView smallDisplay;
     private ImageCapture capture;
     private Executor executor = Executors.newSingleThreadExecutor();
+    private int type;
+    private int no_of_images;
+    private int counter = 0;
+    public TextView pic_taken;
+    public TextView pic_counter; //display for picture counter;
+    public HashMap<String, Uri> picsTakenMap= new HashMap<>();
+    private ArrayList<String>fileNames = new ArrayList<>();
+    private File lastFile;
+    private String lastFileName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,11 +82,33 @@ public class cameraActivity extends AppCompatActivity {
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
 
-        captureButton = (Button) findViewById(R.id.captureButton);
+        shutter = (ImageView) findViewById(R.id.shutterImageView);
+        smallDisplay= (ImageView) findViewById(R.id.smallImageDisplay);
         previewView = (PreviewView) findViewById(R.id.previewCamera);
+        pic_taken = (TextView) findViewById(R.id.pic_taken);
+        pic_counter = (TextView) findViewById(R.id.pic_counter);
 
-        captureButton.setOnClickListener(this::onClickCapture);
+        smallDisplay.setOnClickListener(this::onClickSmallDisplay);
+        shutter.setOnClickListener(this::onClickShutter);
+        type = getIntent().getIntExtra("S/M", -5);
+        switch (type) {
+            case 0: //Multiple
+                pic_taken.setVisibility(View.VISIBLE);
+                pic_counter.setVisibility(View.VISIBLE);
+                pic_counter.setText("1");
+                smallDisplay.setVisibility(View.INVISIBLE);
+                break;
+            case 1: //Single
+            default:
+                pic_taken.setVisibility(View.INVISIBLE);
+                pic_counter.setVisibility(View.INVISIBLE);
+                smallDisplay.setVisibility(View.INVISIBLE);
+                break;
 
+        }
+        Log.d("TAG", "s/m type: " + type);
+        no_of_images = getIntent().getIntExtra("Image Number", 0);
+        Log.d("TAG", "s/m no: " + no_of_images);
         startCamera();
     }
 
@@ -119,7 +159,64 @@ public class cameraActivity extends AppCompatActivity {
         super.onDestroy();
     }
 
-    public void onClickCapture(View v) {
+    public void onClickSmallDisplay(View v) { //Use this to initiate imageview popup (in alertdialog or something like that)
+        //At least a pic should be taken before you can expand this
+        //That way at least, you have usable uri
+        Log.d("TAG", "lastFileName "+ lastFileName);
+        Log.d("TAG", "counter " + counter);
+        Log.d("TAG", "fileNames arraylist onclicksmalldisplay " + fileNames);
+        PathFromUri path = new PathFromUri();
+        if (counter > 0) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Page " + counter);
+            builder.setMessage("Proceed or delete to capture after Page " + ((counter==1) ? "1" : counter-1));
+            final View view = getLayoutInflater().inflate(R.layout.dialog_popup_image, null);
+            builder.setView(view);
+            final ImageView imageView = (ImageView) view.findViewById(R.id.image_popup);
+            Picasso.get().load(new File(path.getPathFromUri(picsTakenMap.get(lastFileName), this))).into(imageView);
+
+            builder.setPositiveButton("Done", (dialog, which) -> dialog.dismiss());
+            //New idea ==> Delete and go back one page, how about that
+            //Iterate through the hashmap to get the index of the last taken picture which would be deleted
+            //However, to go back multiple fold probably requires one or 2 lists which questions the point of the hashmap in the 1st place
+            builder.setNegativeButton("Delete", (dialog, which) -> {
+            //change textview, hashmap, remove from from gallery,change smaller imageview(how?)
+                pic_counter.setText(String.valueOf(counter)); //reduce current by 1
+                File file = new File(path.getPathFromUri(picsTakenMap.get(lastFileName), this));
+                boolean state = file.delete();
+                if (!state) Toast.makeText(getApplicationContext(), "Deletion failed", Toast.LENGTH_SHORT).show();
+                else {
+                    //___________After Deletion works________________//
+                    counter--; //reduce the no of taken pics
+                    picsTakenMap.remove(lastFileName); //filename of the last image saved which should be last picture taken
+                    fileNames.remove(lastFileName);
+                    Toast.makeText(getApplicationContext(), "Deletion successful", Toast.LENGTH_SHORT).show();
+                    if (counter > 0) { //this is reaching weird levels of nested tbh
+                        //need to have an idea of the uris to replace the small display and the image popup
+                        //Since unlike hashmap, the arraylist is ordered, then we can just get the last element of the array list
+                        //That is guaranteed to be the picture before last taken
+                        //But that's only because we would have removed the current pic(which we deleted) from the array list
+                        lastFileName = fileNames.get(fileNames.size()-1);
+                        //replace image views with new pics after deletion
+                        Picasso.get().load(new File(path.getPathFromUri(picsTakenMap.get(lastFileName), this))).into(imageView);
+                        Picasso.get().load(new File(path.getPathFromUri(picsTakenMap.get(lastFileName), this))).into(smallDisplay);
+                    } else {
+                        smallDisplay.setVisibility(View.INVISIBLE);
+                    }
+                    Log.d("TAG", "fileNames arraylist after deletion " + fileNames);
+                    Log.d("TAG", "lastFileName after deletion "+ lastFileName);
+                    Log.d("TAG", "counter after deletion " + counter);
+                    Log.d("TAG", "updated hashmap after deletion: " + picsTakenMap);
+                    //Dismiss at the end to sort of guarantee recursiveness
+                    dialog.dismiss();
+                }
+            });
+            AlertDialog dialog = builder.create();
+            dialog.show();
+        }
+    }
+
+    public void onClickShutter(View v) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.ENGLISH);
         //File file = new File(getDirectoryName(sdf), sdf.format(new Date()) + ".jpg");
         //String filePath = getDirectoryName(sdf);
@@ -142,10 +239,48 @@ public class cameraActivity extends AppCompatActivity {
             @Override
             public void onImageSaved(@NonNull ImageCapture.OutputFileResults outputFileResults) {
                 // Display the saved picture
-                Intent intent = new Intent(cameraActivity.this, displayActivity.class);
-                intent.putExtra("Image OutputFileResults", Objects.requireNonNull(outputFileResults.getSavedUri()).toString());
-                intent.putExtra("Image FileName", fileName);
-                startActivity(intent);
+                switch (type) {
+                    case 0: //Multi image capture
+                        counter++;
+                        fileNames.add(fileName); //have an arraylist for file names, to help with the small display deletion stuff
+                        picsTakenMap.put(fileName, outputFileResults.getSavedUri());
+                        PathFromUri path = new PathFromUri();
+                        lastFile = new File(path.getPathFromUri(outputFileResults.getSavedUri(), getApplicationContext()));
+                        lastFileName = fileName;
+
+                        Log.d("TAG", "picsTaken hashmap on ImageSaved " + picsTakenMap);
+                        Log.d("TAG", "lastFile on ImageSaved " + lastFile);
+                        Log.d("TAG", "lastFileName on ImageSaved " + lastFileName);
+
+                        if (counter == no_of_images) { //I think I need another activity for the multi image display, too complicated to use the same one
+                            //Also I have no idea how to even use it tbh
+                            Bundle bundle = new Bundle();
+                            bundle.putSerializable("Uri Map", picsTakenMap);
+
+                            Intent intent = new Intent(cameraActivity.this, MultiDisplay.class);
+                            intent.putExtra("Pics Counter", counter);
+                            intent.putExtra("Taken Pics Uri", bundle);
+                            startActivity(intent);
+                        } else {
+                            //To solve : Only the original thread that created a view hierarchy can touch its views
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    smallDisplay.setVisibility(View.VISIBLE);
+                                    pic_counter.setText(String.valueOf(counter+1));
+                                    Picasso.get().load(lastFile).into(smallDisplay);
+                                }
+                            });
+                        }
+                        break;
+                    case 1: //Single image capture
+                    default:
+                        Intent intent = new Intent(cameraActivity.this, displayActivity.class);
+                        intent.putExtra("Image OutputFileResults", Objects.requireNonNull(outputFileResults.getSavedUri()).toString());
+                        intent.putExtra("Image FileName", fileName);
+                        startActivity(intent);
+                        break;
+                }
             }
             @Override
             public void onError(@NonNull ImageCaptureException exception) {
