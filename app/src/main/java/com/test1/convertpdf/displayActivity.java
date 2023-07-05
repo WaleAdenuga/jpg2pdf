@@ -94,6 +94,12 @@ public class displayActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public void onBackPressed() {
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
+    }
+
     public void onClickConvertedFilesButton(View v) {
         openPDF open = new openPDF(pdfFilePath);
         open.openPDF(getApplicationContext());
@@ -140,7 +146,7 @@ public class displayActivity extends AppCompatActivity {
     }
 
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        super.finish();
+        onBackPressed();
         return super.onOptionsItemSelected(item);
 
     }
