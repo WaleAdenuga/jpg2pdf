@@ -19,6 +19,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 public class convertToPdf {
@@ -35,7 +36,12 @@ public class convertToPdf {
         this.context = context;
     }
 
-    public String jpgToPdf(String imageFilePath, String imageFileName, int requestCode) {
+
+    //type is for single or multi capture
+    //1 is single
+    //0 is multi
+    public String jpgToPdf(String imageFilePath, String imageFileName, int requestCode, int type
+                            , ArrayList<String>paths) {
         File pdfFile = null;
         try {
 
@@ -63,35 +69,27 @@ public class convertToPdf {
             }
 
             pdfFile = new File(directory.getAbsolutePath(), imageFileName+pdf_tag);
-
             Log.d("TAG", "on click convert pdf file " + pdfFile.getAbsolutePath());
 
             Document document = new Document(PageSize.A4, 0, 0, 0, 0);
             PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream(pdfFile));
             document.open();
-
-            Image image = Image.getInstance(imageFilePath);
-            if ((requestCode == 0)) {
-                image.setRotationDegrees(270);//images are always flipped when taken on my camera for some reason
-            }
-//            int indentation = 0;
-//            float scaler = ((document.getPageSize().getWidth() - document.leftMargin()
-//                    - document.rightMargin() - indentation) / image.getWidth()) * 100;
-//
-//            image.scalePercent(scaler);
-//            //image.scaleToFit(image.getWidth()+1f, image.getHeight()+1f);
-            //image.setAbsolutePosition(0,0);
-
             float documentWidth = document.getPageSize().getWidth() - document.leftMargin() - document.rightMargin();
             float documentHeight = document.getPageSize().getHeight() - document.topMargin() - document.bottomMargin();
-            image.scaleToFit(documentWidth, documentHeight);
 
-            //when you call scale to fit, height and width change so you have to explicitly call getScaledHeight and getScaledWeight
-            Rectangle size = new Rectangle(image.getScaledWidth()+1f, image.getScaledHeight()+1f);
-            document.setPageSize(size);
 
-            document.newPage();
-            document.add(image);
+            switch(type) {
+                case 0: //multi
+                    for (String s: paths) {
+                        addImagePage(0, s, document, documentWidth, documentHeight);
+                    }
+                    break;
+                case 1: //single
+                    addImagePage(0, imageFilePath, document, documentWidth, documentHeight);
+                    break;
+                default:
+                    break;
+            }
             document.close();
             writer.close();
 
@@ -104,5 +102,25 @@ public class convertToPdf {
             e.printStackTrace();
         }
         return pdfFile.getAbsolutePath();
+    }
+
+    public void addImagePage(int requestCode, String imageFilePath, Document document, float documentWidth,float documentHeight) {
+        try {
+            Image image = Image.getInstance(imageFilePath);
+            if ((requestCode == 0)) {
+                image.setRotationDegrees(270);//images are always flipped when taken on my camera for some reason
+            }
+            image.scaleToFit(documentWidth, documentHeight);
+
+            //when you call scale to fit, height and width change so you have to explicitly call getScaledHeight and getScaledWeight
+            Rectangle size = new Rectangle(image.getScaledWidth()+1f, image.getScaledHeight()+1f);
+            document.setPageSize(size);
+
+            document.newPage();
+            document.add(image);
+        } catch (DocumentException | IOException e) {
+            e.printStackTrace();
+        }
+
     }
 }

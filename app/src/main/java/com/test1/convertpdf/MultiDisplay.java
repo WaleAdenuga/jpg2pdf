@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager.widget.ViewPager;
 
+import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.net.Uri;
@@ -16,10 +17,12 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -30,6 +33,7 @@ public class MultiDisplay extends AppCompatActivity {
     private ProgressBar bar;
     private Button convert;
     private Button button;
+    private String pdfFilePath;
     private ViewPager pager;
     private PagerAdapter adapter;
     private ArrayList<String>paths = new ArrayList<String>();
@@ -90,11 +94,23 @@ public class MultiDisplay extends AppCompatActivity {
     }
 
     public void onClickMultiConvert(View v) {
+        convert.setVisibility(View.INVISIBLE);
+        bar.setVisibility(View.VISIBLE);
 
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.ENGLISH);
+        String fileName = "ConvertPDF_Multi_" + sdf.format(System.currentTimeMillis());
+
+        //Added itext jar file because gradle was being annoying
+        convertToPdf convert = new convertToPdf(getApplicationContext());
+        pdfFilePath = convert.jpgToPdf(null, fileName,0, 0, paths);
+
+        bar.setVisibility(View.INVISIBLE);
+        button.setVisibility(View.VISIBLE);
     }
 
     public void onClickMultiConvertedFilesButton(View v) {
-
+        openPDF open = new openPDF(pdfFilePath);
+        open.openPDF(getApplicationContext());
     }
 
     public boolean onCreateOptionsMenu(Menu menu) {

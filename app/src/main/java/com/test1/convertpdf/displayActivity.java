@@ -135,7 +135,7 @@ public class displayActivity extends AppCompatActivity {
 
         //Added itext jar file because gradle was being annoying
         convertToPdf convert = new convertToPdf(getApplicationContext());
-        pdfFilePath = convert.jpgToPdf(imageFilePath, imageFileName,0);
+        pdfFilePath = convert.jpgToPdf(imageFilePath, imageFileName,0, 1, null);
 
         bar.setVisibility(View.INVISIBLE);
         button.setVisibility(View.VISIBLE);

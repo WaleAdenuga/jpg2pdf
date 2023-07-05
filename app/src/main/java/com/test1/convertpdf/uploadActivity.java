@@ -92,7 +92,7 @@ public class uploadActivity extends AppCompatActivity {
         uploadConvertButton.setVisibility(View.INVISIBLE);
 
         convertToPdf convert = new convertToPdf(getApplicationContext());
-        pdfFilePath = convert.jpgToPdf(imageFilePath, providedFileName, -1);
+        pdfFilePath = convert.jpgToPdf(imageFilePath, providedFileName, -1, 1, null);
         File file = new File(pdfFilePath);
         pdfFileNameText.setText(file.getName());
     }
