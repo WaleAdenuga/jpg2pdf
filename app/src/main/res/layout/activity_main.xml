@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="75dp"
         android:layout_marginTop="5dp"
-        android:text="Single Capture"
+        android:text="Single Page"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/cameraView" />
 
@@ -54,7 +54,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="5dp"
         android:layout_marginEnd="60dp"
-        android:text="Multiple Capture"
+        android:text="Multiple Pages"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/multiple" />
 
@@ -65,7 +65,7 @@
         android:layout_marginStart="158dp"
         android:layout_marginTop="5dp"
         android:layout_marginEnd="158dp"
-        android:text="Upload JPG file"
+        android:text="Upload JPG file(s)"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/UploadView" />

@@ -15,6 +15,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 
 import java.text.SimpleDateFormat;
@@ -38,6 +39,7 @@ public class MultiDisplay extends AppCompatActivity {
     private PagerAdapter adapter;
     private ArrayList<String>paths = new ArrayList<String>();
     private ArrayList<String>keys = new ArrayList<String>();
+    private ImageView delete;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,6 +62,9 @@ public class MultiDisplay extends AppCompatActivity {
         adapter = new PagerAdapter(getApplicationContext(), paths);
         pager.setAdapter(adapter);
 
+        delete = (ImageView) findViewById(R.id.delete_view);
+        delete.setOnClickListener(this::onClickDelete);
+
         bar = (ProgressBar) findViewById(R.id.multi_bar);
         bar.setVisibility(View.INVISIBLE);
 
@@ -70,6 +75,25 @@ public class MultiDisplay extends AppCompatActivity {
         button.setVisibility(View.INVISIBLE);
         button.setOnClickListener(this::onClickMultiConvertedFilesButton);
 
+    }
+
+    public void onClickDelete(View v) {
+        //another gimmicky thing that'll just give me headaches
+        Log.d("TAG", "paths before deletion " + paths);
+        int position = pager.getCurrentItem();
+        Object object = adapter.getViews().get(position);
+        Log.d("TAG", "position of pager " + position);
+        Log.d("TAG", "object of pager " + object);
+        Log.d("TAG", "hashmap voews " + adapter.getViews().toString());
+        assert object != null;
+        adapter.removeItem(position);
+        //adapter.destroyItem(pager, position, object); //that method also takes care of removing it from its hashmap
+        pager.setAdapter(adapter);
+        //paths.remove(position-1); //its ordered already
+        Log.d("TAG", "hashmap voews after deletion " + adapter.getViews().toString());
+
+        Log.d("TAG", "paths after deletion " + paths);
+        Log.d("TAG", "paths size after deletion " + paths.size());
     }
 
     public void displayImages() {

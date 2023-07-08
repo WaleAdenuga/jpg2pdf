@@ -14,12 +14,14 @@ import com.squareup.picasso.Picasso;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class PagerAdapter extends androidx.viewpager.widget.PagerAdapter {
 
     private Context context;
     private ArrayList<String> paths = new ArrayList<String>();
     private LayoutInflater inflater;
+    public HashMap<Integer, ImageView>views = new HashMap<>();
 
     public PagerAdapter(Context context, ArrayList<String> paths) {
         this.context = context;
@@ -34,7 +36,7 @@ public class PagerAdapter extends androidx.viewpager.widget.PagerAdapter {
 
     @Override
     public boolean isViewFromObject(@NonNull View view, @NonNull Object object) {
-        return view == ((ConstraintLayout) object);
+        return view == (object);
     }
 
     @NonNull
@@ -45,6 +47,7 @@ public class PagerAdapter extends androidx.viewpager.widget.PagerAdapter {
         image = (ImageView) view.findViewById(R.id.multi_swipe_image);
         Picasso.get().load(new File(paths.get(position))).into(image);
         container.addView(view);
+        views.put(position, image);
         return view;
     }
 
@@ -52,4 +55,19 @@ public class PagerAdapter extends androidx.viewpager.widget.PagerAdapter {
     public void destroyItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
         container.removeView((ConstraintLayout) object);
     }
+
+    public void removeItem(int position) {
+        views.remove(position);
+    }
+
+    public HashMap<Integer, ImageView> getViews() {
+        return views;
+    }
+
+    @Override
+    public int getItemPosition(@NonNull Object object) {
+        return super.getItemPosition(object);
+    }
+
+
 }
