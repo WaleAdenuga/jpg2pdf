@@ -17,7 +17,9 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -81,19 +83,33 @@ public class MultiDisplay extends AppCompatActivity {
         //another gimmicky thing that'll just give me headaches
         Log.d("TAG", "paths before deletion " + paths);
         int position = pager.getCurrentItem();
-        Object object = adapter.getViews().get(position);
-        Log.d("TAG", "position of pager " + position);
-        Log.d("TAG", "object of pager " + object);
-        Log.d("TAG", "hashmap voews " + adapter.getViews().toString());
-        assert object != null;
-        adapter.removeItem(position);
-        //adapter.destroyItem(pager, position, object); //that method also takes care of removing it from its hashmap
-        pager.setAdapter(adapter);
-        //paths.remove(position-1); //its ordered already
-        Log.d("TAG", "hashmap voews after deletion " + adapter.getViews().toString());
+        File file = new File(paths.get(position));
+        boolean state = file.delete();
+        if (!state) Toast.makeText(getApplicationContext(), "Deletion failed", Toast.LENGTH_SHORT).show();
+        else {
+            Toast.makeText(getApplicationContext(), "Deletion successful", Toast.LENGTH_SHORT).show();
+            Log.d("TAG", "position of pager " + position);
+            adapter.removeItem(position);
+            pager.setAdapter(adapter);
+            paths = adapter.getPaths();
+            //sort of allow re-conversion
+            if (convert.getVisibility() == View.INVISIBLE) {
+                convert.setVisibility(View.VISIBLE);
+                button.setVisibility(View.INVISIBLE);
+                bar.setVisibility(View.INVISIBLE);
+            }
+            if (paths.size() <= 0) {
+                Toast.makeText(this, "No images detected", Toast.LENGTH_LONG).show(); //fingers crossed toast works
+                Intent i = new Intent(this, MainActivity.class);
+                i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(i);
+            }
+            Log.d("TAG", "adapter paths after deletion " + adapter.getPaths());
+            Log.d("TAG", "adapter paths size after deletion " + adapter.getPaths().size());
 
-        Log.d("TAG", "paths after deletion " + paths);
-        Log.d("TAG", "paths size after deletion " + paths.size());
+            Log.d("TAG", "paths after deletion " + paths);
+            Log.d("TAG", "paths size after deletion " + paths.size());
+        }
     }
 
     public void displayImages() {

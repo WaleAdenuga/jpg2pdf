@@ -1,11 +1,15 @@
 package com.test1.convertpdf;
 
+import static androidx.core.content.ContextCompat.startActivity;
+
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -21,7 +25,6 @@ public class PagerAdapter extends androidx.viewpager.widget.PagerAdapter {
     private Context context;
     private ArrayList<String> paths = new ArrayList<String>();
     private LayoutInflater inflater;
-    public HashMap<Integer, ImageView>views = new HashMap<>();
 
     public PagerAdapter(Context context, ArrayList<String> paths) {
         this.context = context;
@@ -47,7 +50,6 @@ public class PagerAdapter extends androidx.viewpager.widget.PagerAdapter {
         image = (ImageView) view.findViewById(R.id.multi_swipe_image);
         Picasso.get().load(new File(paths.get(position))).into(image);
         container.addView(view);
-        views.put(position, image);
         return view;
     }
 
@@ -57,11 +59,20 @@ public class PagerAdapter extends androidx.viewpager.widget.PagerAdapter {
     }
 
     public void removeItem(int position) {
-        views.remove(position);
+        if (paths.size() > 0) {
+            paths.remove(position);
+            notifyDataSetChanged();
+        } else {
+            Toast.makeText(context, "No images detected", Toast.LENGTH_LONG).show(); //fingers crossed toast works
+            Intent intent = new Intent(context, MainActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(context, intent, null);
+        }
     }
 
-    public HashMap<Integer, ImageView> getViews() {
-        return views;
+
+    public ArrayList<String> getPaths() {
+        return paths;
     }
 
     @Override
