@@ -50,20 +50,20 @@ public class convertToPdf {
                 boolean state = directory.mkdirs();
                 if (!state) {
                     Toast.makeText(context, "Making directory failed", Toast.LENGTH_SHORT).show();
+                    return null;
                 } else {
                     Toast.makeText(context, "Making directory success", Toast.LENGTH_SHORT).show();
                 }
             }
-            imageFileName = imageFileName.replace(".jpg", "");
             //Delete the PDF file if it already exists
             File[] files = new File(directory.getAbsolutePath()).listFiles();
-            Log.d("TAG", imageFileName);
             Log.d("TAG", ""+ Arrays.toString(files));
             if (!(files == null || files.length==0)) {
                 for (File f : files) {
                     if (f.getName().equals(imageFileName+pdf_tag)) {
-                        f.delete();
-                        Log.d("TAG", ""+f);
+                        boolean state = f.delete();
+                        if (!state) Toast.makeText(context, "File name already exists!", Toast.LENGTH_SHORT).show();
+                        return null;
                     }
                 }
             }
@@ -81,11 +81,11 @@ public class convertToPdf {
             switch(type) {
                 case 0: //multi
                     for (String s: paths) {
-                        addImagePage(0, s, document, documentWidth, documentHeight);
+                        addImagePage(requestCode, s, document, documentWidth, documentHeight);
                     }
                     break;
                 case 1: //single
-                    addImagePage(0, imageFilePath, document, documentWidth, documentHeight);
+                    addImagePage(requestCode, imageFilePath, document, documentWidth, documentHeight);
                     break;
                 default:
                     break;

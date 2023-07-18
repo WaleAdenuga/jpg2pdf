@@ -172,6 +172,11 @@ ActivityResultLauncher<Intent> launcher = registerForActivityResult(
     }
 
     @Override
+    public void onBackPressed() {
+        finish();
+    }
+
+    @Override
     public void onRequestPermissionsResult(int requestCode,
                                            @NonNull String[] permissions,
                                            @NonNull int[] grantResults)

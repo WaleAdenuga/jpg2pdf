@@ -61,8 +61,12 @@ import java.util.concurrent.Executors;
 public class cameraActivity extends AppCompatActivity {
 
     private PreviewView previewView;
+    private int flash_count = 0;
     private ImageView shutter;
     private ImageView smallDisplay;
+    private ImageView flash;
+    private CameraInfo cameraInfo;
+    private CameraControl cameraControl;
     private ImageCapture capture;
     private Executor executor = Executors.newSingleThreadExecutor();
     private int type;
@@ -82,12 +86,14 @@ public class cameraActivity extends AppCompatActivity {
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
 
+        flash = (ImageView) findViewById(R.id.flashlight);
         shutter = (ImageView) findViewById(R.id.shutterImageView);
         smallDisplay= (ImageView) findViewById(R.id.smallImageDisplay);
         previewView = (PreviewView) findViewById(R.id.previewCamera);
         pic_taken = (TextView) findViewById(R.id.pic_taken);
         pic_counter = (TextView) findViewById(R.id.pic_counter);
 
+        flash.setOnClickListener(this::onClickFlash);
         smallDisplay.setOnClickListener(this::onClickSmallDisplay);
         shutter.setOnClickListener(this::onClickShutter);
         type = getIntent().getIntExtra("S/M", -5);
@@ -145,13 +151,36 @@ public class cameraActivity extends AppCompatActivity {
         preview.setSurfaceProvider(previewView.getSurfaceProvider());
         Camera camera = cameraProvider.bindToLifecycle((LifecycleOwner) this, cameraSelector, preview, imageAnalysis, capture);
         //For performing operations that affects all outputs
-        CameraControl control = camera.getCameraControl();
+        cameraControl = camera.getCameraControl();
         //For querying information and states
-        CameraInfo cameraInfo = camera.getCameraInfo();
-        control.setLinearZoom(cameraInfo.getZoomState().getValue().getLinearZoom());
-        if (cameraInfo.hasFlashUnit()) {
-            control.enableTorch(false);
+        cameraInfo = camera.getCameraInfo();
+        cameraControl.setLinearZoom(cameraInfo.getZoomState().getValue().getLinearZoom());
+
+    }
+
+    public void onClickFlash(View v) {
+        //turn on or off flash with each click instead of long click
+        flash_count++;
+        if (flash_count % 2 == 0) { //even
+            if (cameraInfo.hasFlashUnit()) {
+                cameraControl.enableTorch(false);
+            }
+        } else { //odd
+            if (cameraInfo.hasFlashUnit()) {
+                cameraControl.enableTorch(true);
+            }
         }
+
+//        flash.setOnLongClickListener(new View.OnLongClickListener() {
+//            @Override
+//            public boolean onLongClick(View v) {
+//                if (cameraInfo.hasFlashUnit()) {
+//                    cameraControl.enableTorch(false);
+//                    return true;
+//                }
+//                return false;
+//            }
+//        });
     }
 
     @Override
@@ -275,6 +304,7 @@ public class cameraActivity extends AppCompatActivity {
                         break;
                     case 1: //Single image capture
                     default:
+                        Log.d("TAG", "filename in single " +fileName);
                         Intent intent = new Intent(cameraActivity.this, displayActivity.class);
                         intent.putExtra("Image OutputFileResults", Objects.requireNonNull(outputFileResults.getSavedUri()).toString());
                         intent.putExtra("Image FileName", fileName);

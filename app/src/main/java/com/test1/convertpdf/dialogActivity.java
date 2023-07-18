@@ -1,42 +1,32 @@
 package com.test1.convertpdf;
 
 import androidx.activity.ComponentActivity;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.app.ActionBar;
 import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.File;
-import java.util.Objects;
+import java.util.ArrayList;
 
-public class uploadActivity extends AppCompatActivity {
+public class dialogActivity extends AppCompatActivity {
 
-    private String providedFileName;
-    private String imageFilePath;
     private String pdfFilePath;
+    private String fileName;
+    private ArrayList<String> imagePaths = new ArrayList<>();
     private int cond = 0;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         //setContentView(R.layout.dialog_input_filename);
-        //Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
 
-        providedFileName = getIntent().getStringExtra("FileName");
-        imageFilePath = getIntent().getStringExtra("Image FilePath");
+        imagePaths = getIntent().getStringArrayListExtra("Image FilePath");
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Name your converted file");
@@ -45,9 +35,9 @@ public class uploadActivity extends AppCompatActivity {
         final EditText edit = (EditText) view.findViewById(R.id.inputfilename);
 
         builder.setPositiveButton("Done", ((dialog, which) -> {
-            providedFileName = edit.getText().toString();
-            Log.d("TAG", "fileName is " + providedFileName);
-            showPdf(providedFileName);
+            fileName = edit.getText().toString();
+            Log.d("TAG", "fileName is " + fileName);
+            showPdf(fileName);
             cond = 1;
             dialog.dismiss();
         }));
@@ -57,7 +47,7 @@ public class uploadActivity extends AppCompatActivity {
         });
 
         builder.setNeutralButton("Re-upload", ((dialog, which) -> {
-            PickImage pick = new PickImage((ComponentActivity) uploadActivity.this, this, getActivityResultRegistry());
+            PickImage pick = new PickImage((ComponentActivity) dialogActivity.this, this, getActivityResultRegistry());
             pick.pickImage();
             dialog.dismiss();
         }));
@@ -68,21 +58,14 @@ public class uploadActivity extends AppCompatActivity {
 
     public void showPdf(String fileName) {
         convertToPdf convert = new convertToPdf(this);
-        pdfFilePath = convert.jpgToPdf(imageFilePath, fileName,-4, 1, null);
+        pdfFilePath = convert.jpgToPdf(null, fileName,-4, 0, imagePaths);
 
-        if (pdfFilePath != null) {
+        if (fileName != null && pdfFilePath != null) {
             Toast.makeText(this, "Opening Converted PDF", Toast.LENGTH_SHORT).show();
 
             openPDF pdf = new openPDF(pdfFilePath);
             pdf.openPDF(this);
         } else Toast.makeText(this, "Conversion Failed", Toast.LENGTH_SHORT).show();
-
-    }
-
-    @Override
-    protected void onResume() {
-        if (cond == 1) onBackPressed();
-        super.onResume();
     }
 
     @Override
@@ -91,15 +74,9 @@ public class uploadActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-
-    public boolean onCreateOptionsMenu(Menu menu) {
-        return true;
-    }
-
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        //super.finish();
-        onBackPressed();
-        return super.onOptionsItemSelected(item);
-
+    @Override
+    protected void onResume() {
+        if (cond == 1) onBackPressed();
+        super.onResume();
     }
 }

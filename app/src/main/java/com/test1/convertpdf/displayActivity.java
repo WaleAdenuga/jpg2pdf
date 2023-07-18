@@ -137,8 +137,11 @@ public class displayActivity extends AppCompatActivity {
         convertToPdf convert = new convertToPdf(getApplicationContext());
         pdfFilePath = convert.jpgToPdf(imageFilePath, imageFileName,0, 1, null);
 
-        bar.setVisibility(View.INVISIBLE);
-        button.setVisibility(View.VISIBLE);
+        if (pdfFilePath != null) {
+            bar.setVisibility(View.INVISIBLE);
+            button.setVisibility(View.VISIBLE);
+        } else Toast.makeText(this, "Conversion Failed", Toast.LENGTH_SHORT).show();
+
     }
 
     public boolean onCreateOptionsMenu(Menu menu) {

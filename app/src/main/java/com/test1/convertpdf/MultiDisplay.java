@@ -1,20 +1,25 @@
 package com.test1.convertpdf;
 
+import androidx.activity.ComponentActivity;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager.widget.ViewPager;
 
+import android.app.AlertDialog;
 import android.content.ContentValues;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
@@ -31,7 +36,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class MultiDisplay extends AppCompatActivity {
-    private int pics_counter = 0;
+    private String fileName;
     private HashMap<String, Uri> displayMap = new HashMap<>();
     private ProgressBar bar;
     private Button convert;
@@ -50,7 +55,6 @@ public class MultiDisplay extends AppCompatActivity {
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
 
-        pics_counter = getIntent().getIntExtra("Pics Counter", 2);
         Bundle bundle = getIntent().getBundleExtra("Taken Pics Uri");
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -137,15 +141,35 @@ public class MultiDisplay extends AppCompatActivity {
         convert.setVisibility(View.INVISIBLE);
         bar.setVisibility(View.VISIBLE);
 
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Name your converted file");
+        final View view = getLayoutInflater().inflate(R.layout.dialog_input_filename, null);
+        builder.setView(view);
+        final EditText edit = (EditText) view.findViewById(R.id.inputfilename);
+
+        builder.setPositiveButton("Done", ((dialog, which) -> {
+            fileName = edit.getText().toString();
+            dialog.dismiss();
+            if (fileName != null) {
+                convertToPdf convert = new convertToPdf(getApplicationContext());
+                pdfFilePath = convert.jpgToPdf(null, fileName,0, 0, paths);
+
+                bar.setVisibility(View.INVISIBLE);
+                button.setVisibility(View.VISIBLE);
+            } else Toast.makeText(this, "Conversion Failed", Toast.LENGTH_SHORT).show();
+
+        }));
+
+        builder.setNegativeButton("Cancel", (dialog, which) -> {
+            dialog.dismiss();
+        });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.ENGLISH);
-        String fileName = "ConvertPDF_Multi_" + sdf.format(System.currentTimeMillis());
 
         //Added itext jar file because gradle was being annoying
-        convertToPdf convert = new convertToPdf(getApplicationContext());
-        pdfFilePath = convert.jpgToPdf(null, fileName,0, 0, paths);
-
-        bar.setVisibility(View.INVISIBLE);
-        button.setVisibility(View.VISIBLE);
     }
 
     public void onClickMultiConvertedFilesButton(View v) {

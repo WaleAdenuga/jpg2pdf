@@ -21,6 +21,14 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ConvertPDF">
         <activity
+            android:name=".dialogActivity"
+            android:theme="@style/Theme.AppCompat.Dialog"
+            android:exported="false">
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
+        <activity
             android:name=".MultiDisplay"
             android:exported="false">
             <meta-data
@@ -36,6 +44,7 @@
         </activity>
         <activity
             android:name=".uploadActivity"
+            android:theme="@style/Theme.AppCompat.Dialog"
             android:exported="false" />
         <activity
             android:name=".cameraActivity"
