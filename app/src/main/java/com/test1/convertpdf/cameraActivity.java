@@ -13,18 +13,13 @@ import androidx.camera.core.ImageCaptureException;
 import androidx.camera.core.Preview;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
-import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LifecycleOwner;
+import androidx.lifecycle.LiveData;
 
 import android.content.ContentValues;
-import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
-import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -32,13 +27,10 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.util.Size;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -48,11 +40,9 @@ import com.squareup.picasso.Picasso;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
@@ -160,14 +150,12 @@ public class cameraActivity extends AppCompatActivity {
 
     public void onClickFlash(View v) {
         //turn on or off flash with each click instead of long click
-        flash_count++;
-        if (flash_count % 2 == 0) { //even
-            if (cameraInfo.hasFlashUnit()) {
-                cameraControl.enableTorch(false);
-            }
-        } else { //odd
-            if (cameraInfo.hasFlashUnit()) {
-                cameraControl.enableTorch(true);
+        if (cameraInfo.hasFlashUnit()) {
+            LiveData<Integer> data = cameraInfo.getTorchState();
+            if(data.getValue() != null) {
+                if (data.getValue() == 0) {
+                    cameraControl.enableTorch(true);
+                } else cameraControl.enableTorch(false);
             }
         }
 
